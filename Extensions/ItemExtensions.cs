@@ -17,5 +17,17 @@ namespace _NET_REST_API_MongoDB.Extensions
             };
         }
 
+        public static Item ToItem(this ItemDto item)
+        {
+            return new Item()
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Price = item.Price,
+                CreatedAt = item.CreatedAt,
+                UpdatedAt = item.UpdatedAt
+            };
+        }
+
     }
 }

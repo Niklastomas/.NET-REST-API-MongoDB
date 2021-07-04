@@ -41,7 +41,7 @@ namespace _NET_REST_API_MongoDB.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<ItemDto> GetItem(Guid id)
+        public IActionResult GetItem(Guid id)
         {
             var item = _itemRepository.GetItem(id);
 
@@ -54,7 +54,7 @@ namespace _NET_REST_API_MongoDB.Controllers
         }
 
         [HttpPost]
-        public ActionResult CreateItem(CreateItemDto itemDto)
+        public IActionResult CreateItem(CreateItemDto itemDto)
         {
             Item item = new()
             {
@@ -68,7 +68,13 @@ namespace _NET_REST_API_MongoDB.Controllers
 
             return CreatedAtAction(nameof(GetItem), new { Id = item.Id }, item.AsDto());
 
+        }
 
+        [HttpPut("{id}")]
+        public IActionResult UpdateItem(Guid id, ItemDto itemDto)
+        {
+            _itemRepository.UpdateItem(id, itemDto.ToItem());
+            return NoContent();
         }
 
     }
