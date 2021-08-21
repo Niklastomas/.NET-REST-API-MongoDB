@@ -2,7 +2,7 @@ using System;
 
 namespace _NET_REST_API_MongoDB.Dtos
 {
-    public class ItemDto
+    public record ItemDto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

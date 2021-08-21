@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using _NET_REST_API_MongoDB.Dtos;
 using _NET_REST_API_MongoDB.Extensions;
 using _NET_REST_API_MongoDB.Filters;
@@ -23,27 +24,26 @@ namespace _NET_REST_API_MongoDB.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetItems([FromQuery] PaginationFilter filter)
+        public async Task<IActionResult> GetItems([FromQuery] PaginationFilter filter)
         {
             PaginationFilter validFilter = new(filter.PageNumber, filter.PageSize);
-            var items = _itemRepository.GetAll()
-                .Select(item => item.AsDto())
+            var items = await _itemRepository.GetAllAsync();
+            var itemsResponse = items.Select(item => item.AsDto())
                 .Skip((validFilter.PageNumber - 1) * validFilter.PageSize)
                 .Take(validFilter.PageSize);
-
 
             if (items is null)
             {
                 return NotFound();
             }
 
-            return Ok(new PagedResponse<IEnumerable<ItemDto>>(items, validFilter.PageNumber, validFilter.PageSize));
+            return Ok(new PagedResponse<IEnumerable<ItemDto>>(itemsResponse, validFilter.PageNumber, validFilter.PageSize));
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetItem(Guid id)
+        public async Task<IActionResult> GetItem(Guid id)
         {
-            var item = _itemRepository.GetItem(id);
+            var item = await _itemRepository.GetItemAsync(id);
 
             if (item is null)
             {
@@ -54,7 +54,7 @@ namespace _NET_REST_API_MongoDB.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateItem(CreateItemDto itemDto)
+        public async Task<IActionResult> CreateItem(CreateItemDto itemDto)
         {
             Item item = new()
             {
@@ -64,17 +64,32 @@ namespace _NET_REST_API_MongoDB.Controllers
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            _itemRepository.CreateItem(item);
+            await _itemRepository.CreateItemAsync(item);
 
             return CreatedAtAction(nameof(GetItem), new { Id = item.Id }, item.AsDto());
 
         }
 
         [HttpPut("{id}")]
-        public IActionResult UpdateItem(Guid id, ItemDto itemDto)
+        public async Task<IActionResult> UpdateItem(Guid id, UpdateItemDto itemDto)
         {
-            _itemRepository.UpdateItem(id, itemDto.ToItem());
+            var existingItem = await _itemRepository.GetItemAsync(id);
+
+            if (existingItem is null)
+            {
+                return NotFound();
+            }
+
+            Item updatedItem = existingItem with
+            {
+                Name = itemDto.Name,
+                Price = itemDto.Price
+            };
+
+            await _itemRepository.UpdateItemAsync(updatedItem);
             return NoContent();
+
+
         }
 
     }

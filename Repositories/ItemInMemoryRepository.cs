@@ -5,7 +5,7 @@ using _NET_REST_API_MongoDB.Models;
 
 namespace _NET_REST_API_MongoDB.Repositories
 {
-    class ItemInMemoryRepository : IItemRepository
+    class ItemInMemoryRepository
     {
         private readonly List<Item> items = new()
         {
@@ -15,7 +15,7 @@ namespace _NET_REST_API_MongoDB.Repositories
 
         };
 
-        public void CreateItem(Item item)
+        public void CreateItemAsync(Item item)
         {
             items.Add(item);
         }
@@ -36,15 +36,10 @@ namespace _NET_REST_API_MongoDB.Repositories
             return items.Where(x => x.Id == id).FirstOrDefault();
         }
 
-        public void UpdateItem(Guid id, Item item)
+        public void UpdateItem(Item item)
         {
-            var itemToUpdate = items.Where(x => x.Id == id).FirstOrDefault();
-            itemToUpdate = item with
-            {
-                Name = item.Name,
-                Price = item.Price,
-                UpdatedAt = DateTimeOffset.UtcNow
-            };
+            var index = items.FindIndex(existingItem => existingItem.Id == item.Id);
+            items[index] = item;
 
         }
     }
